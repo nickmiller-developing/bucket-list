@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>BUCKET LIST MAXXING</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #170a29;
+    --bg-2: #241145;
+    --panel: #2c1a52;
+    --panel-light: #3a2468;
+    --edge: #0a0518;
+    --cyan: #4cf1e8;
+    --pink: #ff5ea8;
+    --yellow: #ffd23f;
+    --green: #7ee787;
+    --text: #f4f1ff;
+    --muted: #b6a9de;
+  }
+
+  *{ box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+
+  html, body{
+    margin: 0;
+    min-height: 100%;
+    background: radial-gradient(ellipse 130% 90% at 50% -10%, var(--bg-2), var(--bg) 65%);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  #stars{
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star{
+    position: absolute;
+    background: #fff;
+    animation-name: twinkle;
+    animation-iteration-count: infinite;
+    animation-timing-function: steps(4);
+  }
+  @keyframes twinkle{
+    0%, 100% { opacity: .15; }
+    50% { opacity: .9; }
+  }
+
+  #scanlines{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0px, rgba(0,0,0,.22) 1px, transparent 1px, transparent 3px);
+    opacity: .10;
+  }
+
+  .wrap{
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2.6rem 1.1rem 5rem;
+  }
+
+  header{
+    text-align: center;
+    margin-bottom: 2.4rem;
+  }
+
+  h1{
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    line-height: 1.5;
+    margin: 0 0 1rem;
+    color: var(--cyan);
+    text-shadow: 4px 4px 0 var(--pink);
+  }
+
+  .subtitle{
+    font-family: 'VT323', monospace;
+    font-size: clamp(1.05rem, 2vw + .7rem, 1.3rem);
+    color: var(--muted);
+    max-width: 46ch;
+    margin: 0 auto 1.8rem;
+    line-height: 1.4;
+  }
+
+  .hud-label{
+    font-family: 'Press Start 2P', monospace;
+    font-size: .6rem;
+    color: var(--yellow);
+    display: block;
+    margin-bottom: .6rem;
+    letter-spacing: .02em;
+  }
+
+  .bar-track{
+    display: flex;
+    gap: 3px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .bar-seg{
+    flex: 1;
+    height: 14px;
+    background: var(--edge);
+    border: 2px solid var(--edge);
+  }
+  .bar-seg.filled{
+    background: var(--seg-color, var(--cyan));
+  }
+
+  .board{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.6rem;
+    padding: 1rem 0;
+  }
+
+  @media (max-width: 620px){
+    .board{ grid-template-columns: 1fr; }
+  }
+
+  .pixel-frame{
+    background: var(--panel);
+    border: 4px solid var(--edge);
+    box-shadow:
+      inset 3px 3px 0 rgba(255,255,255,.10),
+      inset -3px -3px 0 rgba(0,0,0,.35);
+    clip-path: polygon(
+      8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px),
+      calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px
+    );
+  }
+
+  .quest{
+    position: relative;
+    padding: 1.4rem 1.2rem 1.2rem;
+  }
+
+  .quest-del{
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    background: var(--pink);
+    border: 2px solid var(--edge);
+    color: var(--edge);
+    font-family: 'Press Start 2P', monospace;
+    font-size: .6rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .quest-del:hover{ background: #ffb0cf; }
+
+  .quest-main{
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+    padding-right: 2rem;
+  }
+
+  .quest-check{
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-top: .15rem;
+    cursor: pointer;
+  }
+  .quest-check input{
+    position: absolute;
+    opacity: 0;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    cursor: pointer;
+  }
+  .quest-check .box{
+    width: 30px;
+    height: 30px;
+    background: var(--bg);
+    border: 3px solid var(--edge);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: .7rem;
+    color: var(--edge);
+  }
+  .quest-check input:checked + .box{ background: var(--green); }
+  .quest-check input:checked + .box::after{ content: '✓'; }
+  .quest-check input:focus-visible + .box{
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+  }
+
+  .quest-text{
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin: 0;
+  }
+  .quest.done .quest-text{
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--green);
+    text-decoration-thickness: 3px;
+  }
+
+  .quest-badge{
+    display: inline-block;
+    margin-top: .7rem;
+    font-family: 'Press Start 2P', monospace;
+    font-size: .55rem;
+    color: var(--edge);
+    background: var(--green);
+    padding: .3rem .5rem;
+    border: 2px solid var(--edge);
+  }
+
+  .quest-toggle{
+    display: block;
+    margin-top: .9rem;
+    background: none;
+    border: none;
+    color: var(--cyan);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: .3rem 0;
+  }
+  .quest-toggle:hover{ color: var(--yellow); }
+
+  .quest-detail{
+    margin-top: .8rem;
+    padding-top: .9rem;
+    border-top: 2px dashed rgba(255,255,255,.18);
+  }
+
+  .photo-zone{
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: var(--bg);
+    border: 3px solid var(--edge);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: .7rem;
+  }
+  .quest-photo-img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-placeholder{
+    font-family: 'VT323', monospace;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  .photo-controls{
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .8rem;
+  }
+
+  .pixel-btn{
+    font-family: 'Press Start 2P', monospace;
+    font-size: .6rem;
+    background: var(--cyan);
+    color: var(--edge);
+    border: 3px solid var(--edge);
+    box-shadow: 4px 4px 0 var(--edge);
+    padding: .7rem .9rem;
+    cursor: pointer;
+    transition: transform .05s linear, box-shadow .05s linear;
+    min-height: 44px;
+  }
+  .pixel-btn:active{
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--edge);
+  }
+  .pixel-btn:focus-visible{
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+  }
+  .pixel-btn.tiny{
+    font-size: .55rem;
+    padding: .55rem .7rem;
+    min-height: 38px;
+  }
+  .pixel-btn.ghost{
+    background: var(--panel-light);
+    color: var(--text);
+  }
+
+  .quest-desc{
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+    background: var(--bg);
+    color: var(--text);
+    border: 3px solid var(--edge);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    padding: .7rem .8rem;
+  }
+  .quest-desc::placeholder{ color: var(--muted); }
+  .quest-desc:focus-visible{
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+  }
+
+  .pixel-spark{
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    animation: pixel-burst .6s steps(6) forwards;
+    z-index: 4;
+  }
+  @keyframes pixel-burst{
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity: 0; }
+  }
+
+  .add-panel{
+    max-width: 420px;
+    margin: 2.4rem auto 0;
+    padding: 1.3rem 1.2rem;
+    text-align: center;
+  }
+  .add-panel p{
+    font-family: 'Press Start 2P', monospace;
+    font-size: .65rem;
+    color: var(--yellow);
+    margin: 0 0 1rem;
+  }
+  .add-form{
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+  }
+  .add-form input[type="text"]{
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 3px solid var(--edge);
+    font-family: 'VT323', monospace;
+    font-size: 1.15rem;
+    padding: .7rem .8rem;
+  }
+  .add-form input[type="text"]::placeholder{ color: var(--muted); }
+  .add-form input[type="text"]:focus-visible{
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+  }
+
+  .reset-link{
+    display: block;
+    margin: 2rem auto 0;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .reset-link:hover{ color: var(--pink); }
+
+  .sr-only{
+    position: absolute;
+    left: -9999px;
+  }
+
+  .modal-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 24, .78);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 20;
+  }
+  .modal-overlay[hidden]{
+    display: none;
+  }
+  .modal-box{
+    max-width: 320px;
+    width: 100%;
+    padding: 1.5rem 1.3rem;
+    text-align: center;
+  }
+  .modal-message{
+    font-family: 'VT323', monospace;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    color: var(--text);
+    margin: 0 0 1.3rem;
+  }
+  .modal-actions{
+    display: flex;
+    gap: .7rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="scanlines"></div>
+
+<main class="wrap">
+  <header>
+    <h1>BUCKET LIST<br>MAXXING</h1>
+    <p class="subtitle">Our shared quest log for everything we still want to do together. Check one off, drop in a photo, and leave yourself a note to look back on.</p>
+    <span class="hud-label" id="progressLabel">★ 0 / 0 QUESTS COMPLETE</span>
+    <p class="hud-label" id="apiWarning" style="color: var(--pink); display: none;">⚠ set your Worker URL in the code first — nothing will save yet</p>
+    <div class="bar-track" id="barTrack"></div>
+  </header>
+
+  <section class="board" id="board" aria-label="Our future quests"></section>
+
+  <div class="add-panel pixel-frame">
+    <p>+ NEW QUEST</p>
+    <form class="add-form" id="addForm">
+      <label for="addInput" class="sr-only">Add a new quest</label>
+      <input type="text" id="addInput" placeholder="something we still want to do..." maxlength="140" autocomplete="off">
+      <button type="submit" class="pixel-btn">ADD TO LOG</button>
+    </form>
+  </div>
+
+  <button class="reset-link" id="resetBtn" type="button">▸ reset the whole quest log</button>
+</main>
+
+<div class="modal-overlay" id="confirmModal" hidden>
+  <div class="modal-box pixel-frame">
+    <p class="modal-message" id="modalMessage"></p>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+  // Paste the URL Cloudflare gives you after deploying the Worker (see worker.js), e.g.:
+  // const API_BASE = 'https://bucket-list-api.yourname.workers.dev';
+  const API_BASE = 'https://bucket-list-api.nickmiller2108.workers.dev';
+  const SEGMENTS = 20;
+  const SEG_COLORS = ['var(--cyan)', 'var(--pink)', 'var(--yellow)', 'var(--green)'];
+
+  const board = document.getElementById('board');
+  const barTrack = document.getElementById('barTrack');
+  const progressLabel = document.getElementById('progressLabel');
+  const addForm = document.getElementById('addForm');
+  const addInput = document.getElementById('addInput');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let items = [];
+  let storageAvailable = true;
+
+  function emptyItems(){
+    return [];
+  }
+
+  function normalize(list){
+    return (list || []).map(it => ({
+      id: it.id,
+      text: it.text,
+      done: !!it.done,
+      description: it.description || '',
+      image: it.image || null
+    }));
+  }
+
+  // Old versions of this page seeded quests you never added yourself (ids like "d0".."d11").
+  // Strip those out of anything already saved.
+  function stripSeeded(list){
+    return list.filter(it => !/^d\d+$/.test(it.id));
+  }
+
+  const API_CONFIGURED = /^https?:\/\//.test(API_BASE);
+
+  async function loadItems(){
+    if(!API_CONFIGURED){
+      storageAvailable = false;
+      return emptyItems();
+    }
+    try{
+      const res = await fetch(`${API_BASE}/items`);
+      if(!res.ok) throw new Error('bad response');
+      const loaded = normalize(await res.json());
+      const cleaned = stripSeeded(loaded);
+      if(cleaned.length !== loaded.length){
+        await saveItems(cleaned);
+      }
+      return cleaned;
+    }catch(e){
+      storageAvailable = false;
+      return emptyItems();
+    }
+  }
+
+  async function saveItems(list){
+    if(!storageAvailable || !API_CONFIGURED) return;
+    try{
+      const res = await fetch(`${API_BASE}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(list),
+      });
+      if(!res.ok) throw new Error('bad response');
+    }catch(e){
+      storageAvailable = false;
+    }
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function debounce(fn, delay){
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+  }
+
+  function showModal(message, buttons){
+    return new Promise(resolve => {
+      const overlay = document.getElementById('confirmModal');
+      const msgEl = document.getElementById('modalMessage');
+      const actions = document.getElementById('modalActions');
+      msgEl.textContent = message;
+      actions.innerHTML = '';
+      buttons.forEach(b => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pixel-btn' + (b.primary ? '' : ' ghost');
+        btn.textContent = b.label;
+        btn.addEventListener('click', () => { overlay.hidden = true; resolve(b.value); });
+        actions.appendChild(btn);
+      });
+      overlay.hidden = false;
+      actions.querySelector('button').focus();
+    });
+  }
+
+  function pixelConfirm(message){
+    return showModal(message, [
+      { label: 'YES', value: true, primary: true },
+      { label: 'CANCEL', value: false }
+    ]);
+  }
+
+  function pixelAlert(message){
+    return showModal(message, [{ label: 'OK', value: true, primary: true }]);
+  }
+
+  function compressImage(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 640;
+          let { width, height } = img;
+          if(width > maxDim || height > maxDim){
+            if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+            else { width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function updateProgress(){
+    const total = items.length;
+    const done = items.filter(i => i.done).length;
+    progressLabel.textContent = total ? `★ ${done} / ${total} QUESTS COMPLETE` : '★ ADD YOUR FIRST QUEST';
+    const pct = total ? done / total : 0;
+    const filledCount = Math.round(pct * SEGMENTS);
+    barTrack.innerHTML = '';
+    for(let i = 0; i < SEGMENTS; i++){
+      const seg = document.createElement('div');
+      seg.className = 'bar-seg' + (i < filledCount ? ' filled' : '');
+      if(i < filledCount){
+        seg.style.setProperty('--seg-color', SEG_COLORS[i % SEG_COLORS.length]);
+      }
+      barTrack.appendChild(seg);
+    }
+  }
+
+  function spawnSparkles(cardEl){
+    const originX = cardEl.clientWidth / 2;
+    const originY = 40;
+    for(let i = 0; i < 8; i++){
+      const s = document.createElement('span');
+      s.className = 'pixel-spark';
+      s.style.background = SEG_COLORS[i % SEG_COLORS.length];
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 26 + Math.random() * 34;
+      s.style.left = originX + 'px';
+      s.style.top = originY + 'px';
+      s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      cardEl.appendChild(s);
+      s.addEventListener('animationend', () => s.remove());
+    }
+  }
+
+  function photoZoneHtml(item){
+    return item.image
+      ? `<img class="quest-photo-img" src="${item.image}" alt="">`
+      : `<div class="photo-placeholder">no photo yet</div>`;
+  }
+
+  function cardHtml(item){
+    return `
+      <button class="quest-del" aria-label="Delete this quest">X</button>
+      <div class="quest-main">
+        <label class="quest-check">
+          <input type="checkbox" ${item.done ? 'checked' : ''}>
+          <span class="box"></span>
+        </label>
+        <p class="quest-text">${escapeHtml(item.text)}</p>
+      </div>
+      ${item.done ? '<span class="quest-badge">QUEST DONE</span>' : ''}
+      <button type="button" class="quest-toggle" aria-expanded="false">▸ memory</button>
+      <div class="quest-detail" hidden>
+        <div class="photo-zone">${photoZoneHtml(item)}</div>
+        <div class="photo-controls">
+          <input type="file" accept="image/*" class="photo-input" hidden>
+          <button type="button" class="pixel-btn tiny upload-btn">UPLOAD PHOTO</button>
+          ${item.image ? '<button type="button" class="pixel-btn tiny ghost remove-photo-btn">REMOVE</button>' : ''}
+        </div>
+        <textarea class="quest-desc" placeholder="write about it once it happens...">${escapeHtml(item.description)}</textarea>
+      </div>
+    `;
+  }
+
+  function render(){
+    board.innerHTML = '';
+    items.forEach(item => {
+      const card = document.createElement('article');
+      card.className = 'quest pixel-frame' + (item.done ? ' done' : '');
+      card.dataset.id = item.id;
+      card.innerHTML = cardHtml(item);
+      board.appendChild(card);
+    });
+    updateProgress();
+  }
+
+  function updatePhotoZone(card, item){
+    const zone = card.querySelector('.photo-zone');
+    zone.innerHTML = photoZoneHtml(item);
+    const controls = card.querySelector('.photo-controls');
+    let removeBtn = controls.querySelector('.remove-photo-btn');
+    if(item.image && !removeBtn){
+      removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'pixel-btn tiny ghost remove-photo-btn';
+      removeBtn.textContent = 'REMOVE';
+      controls.appendChild(removeBtn);
+    }else if(!item.image && removeBtn){
+      removeBtn.remove();
+    }
+  }
+
+  board.addEventListener('click', async (e) => {
+    const card = e.target.closest('.quest');
+    if(!card) return;
+    const id = card.dataset.id;
+    const item = items.find(i => i.id === id);
+    if(!item) return;
+
+    if(e.target.closest('.quest-del')){
+      if(await pixelConfirm('Delete this quest forever?')){
+        items = items.filter(i => i.id !== id);
+        render();
+        await saveItems(items);
+      }
+      return;
+    }
+
+    if(e.target.closest('.quest-toggle')){
+      const detail = card.querySelector('.quest-detail');
+      const btn = card.querySelector('.quest-toggle');
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      detail.hidden = expanded;
+      btn.textContent = expanded ? '▸ memory' : '▾ memory';
+      return;
+    }
+
+    if(e.target.closest('.upload-btn')){
+      card.querySelector('.photo-input').click();
+      return;
+    }
+
+    if(e.target.closest('.remove-photo-btn')){
+      item.image = null;
+      updatePhotoZone(card, item);
+      await saveItems(items);
+      return;
+    }
+  });
+
+  board.addEventListener('change', async (e) => {
+    const card = e.target.closest('.quest');
+    if(!card) return;
+    const id = card.dataset.id;
+    const item = items.find(i => i.id === id);
+    if(!item) return;
+
+    if(e.target.matches('input[type="checkbox"]')){
+      item.done = e.target.checked;
+      card.classList.toggle('done', item.done);
+      let badge = card.querySelector('.quest-badge');
+      if(item.done){
+        if(!badge){
+          badge = document.createElement('span');
+          badge.className = 'quest-badge';
+          badge.textContent = 'QUEST DONE';
+          card.querySelector('.quest-main').insertAdjacentElement('afterend', badge);
+        }
+        spawnSparkles(card);
+      }else if(badge){
+        badge.remove();
+      }
+      updateProgress();
+      await saveItems(items);
+      return;
+    }
+
+    if(e.target.matches('.photo-input')){
+      const file = e.target.files[0];
+      if(file){
+        try{
+          const dataUrl = await compressImage(file);
+          item.image = dataUrl;
+          updatePhotoZone(card, item);
+          await saveItems(items);
+        }catch(err){
+          await pixelAlert("Couldn't load that photo, try a different one.");
+        }
+      }
+      return;
+    }
+  });
+
+  board.addEventListener('input', debounce(async (e) => {
+    if(!e.target.matches('.quest-desc')) return;
+    const card = e.target.closest('.quest');
+    if(!card) return;
+    const id = card.dataset.id;
+    const item = items.find(i => i.id === id);
+    if(!item) return;
+    item.description = e.target.value;
+    await saveItems(items);
+  }, 500));
+
+  addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = addInput.value.trim();
+    if(!text) return;
+    items.push({ id: 'u' + Date.now(), text, done: false, description: '', image: null });
+    addInput.value = '';
+    render();
+    await saveItems(items);
+  });
+
+  resetBtn.addEventListener('click', async () => {
+    if(!(await pixelConfirm('Reset the whole quest log? This clears everything you two have added.'))) return;
+    items = emptyItems();
+    render();
+    await saveItems(items);
+  });
+
+  function buildStars(){
+    const container = document.getElementById('stars');
+    const frag = document.createDocumentFragment();
+    for(let i = 0; i < 60; i++){
+      const star = document.createElement('span');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      const size = Math.random() < 0.7 ? 2 : 3;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.animationDelay = (Math.random() * 6).toFixed(2) + 's';
+      star.style.animationDuration = (2.5 + Math.random() * 4).toFixed(2) + 's';
+      frag.appendChild(star);
+    }
+    container.appendChild(frag);
+  }
+
+  (async function init(){
+    buildStars();
+    if(!API_CONFIGURED){
+      document.getElementById('apiWarning').style.display = 'block';
+    }
+    items = await loadItems();
+    render();
+  })();
+</script>
+
+</body>
+</html>
